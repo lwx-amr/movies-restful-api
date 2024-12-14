@@ -9,6 +9,7 @@ import databaseConfig from './config/database.config';
 import tmdbConfig from './config/tmdb.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseSyncModule } from './modules/database-sync/database-sync.module';
+import { MoviesModule } from './modules/movies/movies.module';
 import AppDataSource from './config/typeorm.config';
 
 @Module({
@@ -20,6 +21,7 @@ import AppDataSource from './config/typeorm.config';
     TypeOrmModule.forRoot(AppDataSource.options),
     MoviesClientModule,
     DatabaseSyncModule,
+    MoviesModule,
   ],
   controllers: [AppController],
   providers: [AppService, HttpClientProvider],
