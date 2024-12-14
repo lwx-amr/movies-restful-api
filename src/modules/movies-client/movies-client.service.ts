@@ -1,15 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { MoviesClientInterface } from './interfaces/movies-client.interface';
 import { MOVIES_CLIENT } from '../../utils/constants';
-import { Movie } from './types/movie.type';
 import { Genre } from './types/genre.type';
+import { MoviesList } from './types/movies-list.type';
 
 @Injectable()
 export class MoviesClientService {
   constructor(@Inject(MOVIES_CLIENT) private readonly moviesClient: MoviesClientInterface) {}
 
-  async getPopularMovies(): Promise<Movie[]> {
-    return this.moviesClient.fetchMovies();
+  async getPopularMovies(page: number): Promise<MoviesList> {
+    return this.moviesClient.fetchMovies(page);
   }
 
   async getGenres(): Promise<Genre[]> {
