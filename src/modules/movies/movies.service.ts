@@ -5,6 +5,7 @@ import { Movie } from './entities/movie.entity';
 import { CreateMovieDto } from './dtos/create-movie.dto';
 import { UpdateMovieDto } from './dtos/update-movie.dto';
 import { MoviesList } from './types/movies-list.type';
+import { RateMovieDto } from './dtos/rate-movie.dto';
 
 @Injectable()
 export class MoviesService {
@@ -87,5 +88,26 @@ export class MoviesService {
     }
 
     await this.movieRepository.delete(id);
+  }
+
+  async rateMovie(id: number, rateMovieDto: RateMovieDto): Promise<void> {
+    const movie = await this.movieRepository.findOne({ where: { id } });
+
+    if (!movie) {
+      throw new NotFoundException(`Movie with ID ${id} not found.`);
+    }
+
+    const { rating } = rateMovieDto;
+
+    await this.movieRepository
+      .createQueryBuilder()
+      .setLock('pessimistic_write')
+      .update(Movie)
+      .set({
+        ratingCount: () => 'ratingCount + 1',
+        averageRating: () => `(averageRating * ratingCount + ${rating}) / (ratingCount + 1)`,
+      })
+      .where('id = :id', { id })
+      .execute();
   }
 }

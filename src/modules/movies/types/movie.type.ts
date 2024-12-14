@@ -13,4 +13,6 @@ export type Movie = {
   video?: boolean;
   voteAverage?: number;
   voteCount?: number;
+  averageRating?: number;
+  ratingCount?: number;
 };

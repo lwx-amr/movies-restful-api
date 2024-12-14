@@ -5,6 +5,8 @@ import { CreateMovieDto } from './dtos/create-movie.dto';
 import { UpdateMovieDto } from './dtos/update-movie.dto';
 import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
 import { MoviesList } from './types/movies-list.type';
+import { RateMovieDto } from './dtos/rate-movie.dto';
+import { NotFoundException } from '@nestjs/common';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -17,6 +19,7 @@ describe('MoviesController', () => {
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
+      rateMovie: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -146,6 +149,30 @@ describe('MoviesController', () => {
       moviesService.remove.mockRejectedValue(error);
 
       await expect(controller.remove(1)).rejects.toThrow(error);
+    });
+  });
+
+  describe('rateMovie', () => {
+    it('should call the service method to rate a movie and return a success message', async () => {
+      const id = 1;
+      const rateMovieDto: RateMovieDto = { rating: 4.5 };
+
+      moviesService.rateMovie.mockResolvedValue(undefined);
+
+      const result = await controller.rateMovie(id, rateMovieDto);
+
+      expect(moviesService.rateMovie).toHaveBeenCalledWith(id, rateMovieDto);
+      expect(result).toEqual({ message: 'Movie rated successfully' });
+    });
+
+    it('should throw an error if the service method throws a NotFoundException', async () => {
+      const id = 999;
+      const rateMovieDto: RateMovieDto = { rating: 4.5 };
+
+      moviesService.rateMovie.mockRejectedValue(new NotFoundException(`Movie with ID ${id} not found`));
+
+      await expect(controller.rateMovie(id, rateMovieDto)).rejects.toThrow(new NotFoundException(`Movie with ID ${id} not found`));
+      expect(moviesService.rateMovie).toHaveBeenCalledWith(id, rateMovieDto);
     });
   });
 });
