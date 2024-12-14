@@ -3,12 +3,14 @@ import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from './common/pipes/validation.pipe';
 
 dotenv.config({ path: process.cwd() + '/.env' });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe());
 
   const configService = app.get(ConfigService);
 
