@@ -3,6 +3,8 @@ import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dtos/create-movie.dto';
 import { UpdateMovieDto } from './dtos/update-movie.dto';
+import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
+import { MoviesList } from './types/movies-list.type';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -46,15 +48,42 @@ describe('MoviesController', () => {
   });
 
   describe('findAll', () => {
-    it('should call findAll service method and return a list of movies', async () => {
-      const movies = [{ id: 1, title: 'Test Movie', overview: 'Test Description' } as any];
+    it('should call findAll service method with pagination parameters and return a paginated list of movies', async () => {
+      const query: ListMoviesQueryDto = { page: 2, limit: 5 };
+      const paginatedMovies: MoviesList = {
+        movies: [
+          { id: 1, title: 'Test Movie', overview: 'Test Description' } as any,
+          { id: 2, title: 'Another Movie', overview: 'Another Description' } as any,
+        ],
+        totalPages: 3,
+        currentPage: 2,
+      };
 
-      moviesService.findAll.mockResolvedValue(movies);
+      moviesService.findAll.mockResolvedValue(paginatedMovies);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(query);
 
-      expect(moviesService.findAll).toHaveBeenCalled();
-      expect(result).toEqual(movies);
+      expect(moviesService.findAll).toHaveBeenCalledWith(query.page, query.limit);
+      expect(result).toEqual(paginatedMovies);
+    });
+
+    it('should call findAll with default pagination parameters if none are provided', async () => {
+      const query: ListMoviesQueryDto = {};
+      const paginatedMovies: MoviesList = {
+        movies: [
+          { id: 1, title: 'Test Movie', overview: 'Test Description' } as any,
+          { id: 2, title: 'Another Movie', overview: 'Another Description' } as any,
+        ],
+        totalPages: 5,
+        currentPage: 1,
+      };
+
+      moviesService.findAll.mockResolvedValue(paginatedMovies);
+
+      const result = await controller.findAll(query);
+
+      expect(moviesService.findAll).toHaveBeenCalledWith(1, 10);
+      expect(result).toEqual(paginatedMovies);
     });
   });
 

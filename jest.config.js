@@ -23,10 +23,11 @@ module.exports = {
     '<rootDir>/jest.config.js',
     '<rootDir>/.eslintrc.js',
     '<rootDir>/main.ts',
-    '<rootDir>/shared/utils/',
+    '<rootDir>/utils/',
     '<rootDir>/database/',
     '\\.interface\\.ts$',
     '\\.module\\.ts$',
     '\\.config\\.ts$',
+    '\\.dto\\.ts$',
   ],
 };
