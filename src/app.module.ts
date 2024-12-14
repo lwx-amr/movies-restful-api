@@ -5,15 +5,21 @@ import { MoviesClientModule } from './modules/movies-client/movies-client.module
 import { HttpClientProvider } from './shared/http-client/http-client.provider';
 import { ConfigModule } from '@nestjs/config';
 import appConfig from './config/app.config';
+import databaseConfig from './config/database.config';
 import tmdbConfig from './config/tmdb.config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseSyncModule } from './modules/database-sync/database-sync.module';
+import AppDataSource from './config/typeorm.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [appConfig, tmdbConfig],
+      load: [appConfig, databaseConfig, tmdbConfig],
       isGlobal: true,
     }),
+    TypeOrmModule.forRoot(AppDataSource.options),
     MoviesClientModule,
+    DatabaseSyncModule,
   ],
   controllers: [AppController],
   providers: [AppService, HttpClientProvider],
