@@ -13,6 +13,6 @@ import { MOVIES_CLIENT } from '../../utils/constants';
     },
     MoviesClientService,
   ],
-  exports: [MoviesClientService],
+  exports: [MoviesClientService, MOVIES_CLIENT],
 })
 export class MoviesClientModule {}
