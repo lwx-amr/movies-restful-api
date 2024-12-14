@@ -1,17 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateQueryBuilder } from 'typeorm';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { Movie } from './entities/movie.entity';
 import { CreateMovieDto } from './dtos/create-movie.dto';
 import { UpdateMovieDto } from './dtos/update-movie.dto';
+import { RateMovieDto } from './dtos/rate-movie.dto';
 
 describe('MoviesService', () => {
   let service: MoviesService;
   let movieRepository: jest.Mocked<Repository<Movie>>;
 
   beforeEach(async () => {
+    const mockQueryBuilder = {
+      setLock: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<UpdateQueryBuilder<Movie>>;
+
     const mockMovieRepository = {
       findOne: jest.fn(),
       find: jest.fn(),
@@ -20,6 +29,7 @@ describe('MoviesService', () => {
       update: jest.fn(),
       delete: jest.fn(),
       count: jest.fn(),
+      createQueryBuilder: jest.fn(() => mockQueryBuilder),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -194,6 +204,43 @@ describe('MoviesService', () => {
       movieRepository.findOne.mockResolvedValue(null);
 
       await expect(service.remove(1)).rejects.toThrow(new NotFoundException(`Movie with ID 1 not found.`));
+    });
+  });
+
+  describe('rateMovie', () => {
+    it('should successfully rate a movie and calculate averageRating and ratingCount correctly', async () => {
+      const id = 1;
+      const rateMovieDto: RateMovieDto = { rating: 4.5 };
+      const mockMovie = { id, title: 'Test Movie', ratingCount: 3, averageRating: 4.0 } as any;
+
+      movieRepository.findOne.mockResolvedValue(mockMovie);
+
+      const queryBuilder = movieRepository.createQueryBuilder();
+
+      await service.rateMovie(id, rateMovieDto);
+
+      expect(movieRepository.findOne).toHaveBeenCalledWith({ where: { id } });
+
+      const setArgument = (queryBuilder as any).set.mock.calls[0][0];
+      expect((setArgument as any).ratingCount()).toBe('ratingCount + 1');
+      expect((setArgument as any).averageRating()).toBe('(averageRating * ratingCount + 4.5) / (ratingCount + 1)');
+
+      expect(queryBuilder.setLock).toHaveBeenCalledWith('pessimistic_write');
+      expect(queryBuilder.update).toHaveBeenCalledWith(Movie);
+      expect(queryBuilder.where).toHaveBeenCalledWith('id = :id', { id });
+      expect(queryBuilder.execute).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if the movie does not exist', async () => {
+      const id = 999;
+      const rateMovieDto: RateMovieDto = { rating: 4.5 };
+
+      movieRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.rateMovie(id, rateMovieDto)).rejects.toThrow(new NotFoundException(`Movie with ID ${id} not found.`));
+
+      expect(movieRepository.findOne).toHaveBeenCalledWith({ where: { id } });
+      expect(movieRepository.createQueryBuilder().execute).not.toHaveBeenCalled();
     });
   });
 });

@@ -6,6 +6,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Movie } from './entities/movie.entity';
 import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
 import { MoviesList } from './types/movies-list.type';
+import { RateMovieDto } from './dtos/rate-movie.dto';
 
 @ApiTags('Movies')
 @Controller('movies')
@@ -49,5 +50,16 @@ export class MoviesController {
   @ApiResponse({ status: 204, description: 'The movie has been deleted.' })
   async remove(@Param('id') id: number): Promise<void> {
     return this.moviesService.remove(id);
+  }
+
+  @Patch(':id/rate')
+  @ApiOperation({ summary: 'Rate a movie' })
+  @ApiResponse({
+    status: 200,
+    description: 'The movie has been rated successfully.',
+  })
+  async rateMovie(@Param('id') id: number, @Body() rateMovieDto: RateMovieDto) {
+    await this.moviesService.rateMovie(id, rateMovieDto);
+    return { message: 'Movie rated successfully' };
   }
 }

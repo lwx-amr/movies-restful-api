@@ -45,6 +45,12 @@ export class Movie {
   @Column({ nullable: true })
   voteCount?: number;
 
+  @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
+  averageRating?: number;
+
+  @Column({ default: 0 })
+  ratingCount?: number;
+
   @ManyToMany(() => Genre)
   @JoinTable()
   genres: Genre[];
