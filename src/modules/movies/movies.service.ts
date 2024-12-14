@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Movie } from './entities/movie.entity';
 import { CreateMovieDto } from './dtos/create-movie.dto';
 import { UpdateMovieDto } from './dtos/update-movie.dto';
+import { MoviesList } from './types/movies-list.type';
 
 @Injectable()
 export class MoviesService {
@@ -29,14 +30,28 @@ export class MoviesService {
     return this.movieRepository.save(movie);
   }
 
-  async findAll(): Promise<Movie[]> {
-    const movies = await this.movieRepository.find({ relations: ['genres'] });
+  async findAll(page: number = 1, limit: number = 10): Promise<MoviesList> {
+    const totalCount = await this.movieRepository.count();
+    const totalPages = Math.ceil(totalCount / limit);
 
-    if (!movies || movies.length === 0) {
-      throw new NotFoundException('No movies found.');
+    if (page > totalPages) {
+      throw new NotFoundException(`No movies found on page ${page}.`);
     }
 
-    return movies;
+    const movies = await this.movieRepository.find({
+      relations: ['genres'],
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      movies: movies.map((movie) => ({
+        ...movie,
+        genres: movie.genres.map((genre) => genre.id),
+      })),
+      currentPage: page,
+      totalPages,
+    };
   }
 
   async findOne(id: number): Promise<Movie> {

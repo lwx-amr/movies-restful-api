@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, Query } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dtos/create-movie.dto';
 import { UpdateMovieDto } from './dtos/update-movie.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Movie } from './entities/movie.entity';
+import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
+import { MoviesList } from './types/movies-list.type';
 
 @ApiTags('Movies')
 @Controller('movies')
@@ -18,10 +20,14 @@ export class MoviesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all movies' })
-  @ApiResponse({ status: 200, description: 'List of movies.', type: [Movie] })
-  async findAll(): Promise<Movie[]> {
-    return this.moviesService.findAll();
+  @ApiOperation({ summary: 'Get all movies with pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of movies with pagination metadata.',
+  })
+  async findAll(@Query() query: ListMoviesQueryDto): Promise<MoviesList> {
+    const { page = 1, limit = 10 } = query;
+    return this.moviesService.findAll(page, limit);
   }
 
   @Get(':id')

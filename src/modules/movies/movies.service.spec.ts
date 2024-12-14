@@ -19,6 +19,7 @@ describe('MoviesService', () => {
       save: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -77,24 +78,58 @@ describe('MoviesService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all movies', async () => {
-      const movies: any = [
-        { id: 1, title: 'Movie 1', tmdbId: 1, genres: [] },
-        { id: 2, title: 'Movie 2', tmdbId: 2, genres: [] },
+    it('should return a paginated list of movies with metadata', async () => {
+      const page = 1;
+      const limit = 10;
+      const totalCount = 25;
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const mockMovies = [
+        {
+          id: 1,
+          title: 'Test Movie 1',
+          genres: [{ id: 1, name: 'Action' }],
+        },
+        {
+          id: 2,
+          title: 'Test Movie 2',
+          genres: [{ id: 2, name: 'Comedy' }],
+        },
       ];
 
-      movieRepository.find.mockResolvedValue(movies);
+      movieRepository.count.mockResolvedValue(totalCount);
+      movieRepository.find.mockResolvedValue(mockMovies as any);
 
-      const result = await service.findAll();
+      const result = await service.findAll(page, limit);
 
-      expect(movieRepository.find).toHaveBeenCalledWith({ relations: ['genres'] });
-      expect(result).toEqual(movies);
+      expect(movieRepository.count).toHaveBeenCalledTimes(1);
+      expect(movieRepository.find).toHaveBeenCalledWith({
+        relations: ['genres'],
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      expect(result).toEqual({
+        movies: mockMovies.map((movie) => ({
+          ...movie,
+          genres: movie.genres.map((genre) => genre.id),
+        })),
+        currentPage: page,
+        totalPages,
+      });
     });
 
-    it('should throw NotFoundException if no movies are found', async () => {
-      movieRepository.find.mockResolvedValue([]);
+    it('should throw NotFoundException if requested page exceeds total pages', async () => {
+      const page = 3;
+      const limit = 10;
+      const totalCount = 20;
 
-      await expect(service.findAll()).rejects.toThrow(new NotFoundException('No movies found.'));
+      movieRepository.count.mockResolvedValue(totalCount);
+
+      await expect(service.findAll(page, limit)).rejects.toThrow(new NotFoundException(`No movies found on page ${page}.`));
+
+      expect(movieRepository.count).toHaveBeenCalledTimes(1);
+      expect(movieRepository.find).not.toHaveBeenCalled();
     });
   });
 

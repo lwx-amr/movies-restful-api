@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesClientService } from './movies-client.service';
 import { MoviesClientInterface } from './interfaces/movies-client.interface';
 import { MOVIES_CLIENT } from '../../utils/constants';
-import { MoviesList } from './types/movies-list.type';
+import { MoviesList } from '../movies/types/movies-list.type';
 import { Genre } from './types/genre.type';
 
 describe('MoviesClientService', () => {

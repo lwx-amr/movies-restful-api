@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { MoviesClientInterface } from './interfaces/movies-client.interface';
 import { MOVIES_CLIENT } from '../../utils/constants';
 import { Genre } from './types/genre.type';
-import { MoviesList } from './types/movies-list.type';
+import { MoviesList } from '../movies/types/movies-list.type';
 
 @Injectable()
 export class MoviesClientService {

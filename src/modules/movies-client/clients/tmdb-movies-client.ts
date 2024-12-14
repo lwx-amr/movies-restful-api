@@ -6,7 +6,7 @@ import { TmdbMovie } from '../types/tmdb-movie.type';
 import { Genre } from '../types/genre.type';
 import { Movie } from '../../movies/types/movie.type';
 import { TmdbMoviesResponse } from '../types/tmdb-movies-response.type';
-import { MoviesList } from '../types/movies-list.type';
+import { MoviesList } from '../../movies/types/movies-list.type';
 
 @Injectable()
 export class TMDBMoviesClient implements MoviesClientInterface {
