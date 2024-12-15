@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import { join } from 'path';
 import { Movie } from 'src/modules/movies/entities/movie.entity';
 import { Genre } from 'src/modules/movies/entities/genre.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 
 config({ path: process.cwd() + '/.env' });
 
@@ -14,7 +15,7 @@ const AppDataSource = new DataSource({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   synchronize: false,
-  entities: [Movie, Genre],
+  entities: [Movie, Genre, User],
   migrations: [join(__dirname, '..', 'database', 'migrations', '*.ts')],
   migrationsRun: false,
 });

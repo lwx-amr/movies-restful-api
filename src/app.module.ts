@@ -10,18 +10,21 @@ import tmdbConfig from './config/tmdb.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseSyncModule } from './modules/database-sync/database-sync.module';
 import { MoviesModule } from './modules/movies/movies.module';
+import { UsersModule } from './modules/users/users.module';
 import AppDataSource from './config/typeorm.config';
+import jwtConfig from './config/jwt.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [appConfig, databaseConfig, tmdbConfig],
+      load: [appConfig, databaseConfig, tmdbConfig, jwtConfig],
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(AppDataSource.options),
     MoviesClientModule,
     DatabaseSyncModule,
     MoviesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService, HttpClientProvider],
