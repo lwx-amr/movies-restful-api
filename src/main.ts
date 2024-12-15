@@ -14,7 +14,20 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  const config = new DocumentBuilder().setTitle('Movies Restful API').setDescription('API Documentation').setVersion('1.0').build();
+  const config = new DocumentBuilder()
+    .setTitle('Movies Restful API')
+    .setDescription('API Documentation')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'Bearer',
+    )
+    .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 

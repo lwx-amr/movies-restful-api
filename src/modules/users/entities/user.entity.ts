@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Watchlist } from '../../../modules/watchlist/entities/watchlist.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToOne } from 'typeorm';
 
 @Entity()
 export class User {
@@ -33,4 +34,7 @@ export class User {
     default: () => 'CURRENT_TIMESTAMP(6)',
   })
   createdAt: Date;
+
+  @OneToOne(() => Watchlist, (watchlist) => watchlist.user)
+  watchlist: Watchlist;
 }
