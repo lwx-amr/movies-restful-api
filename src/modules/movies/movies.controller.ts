@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Param, Patch, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { MoviesService } from './movies.service';
 import { MoviesList } from './types/movies-list.type';
@@ -9,6 +9,7 @@ import { MovieDto } from './dtos/movie.dto';
 import { SearchMoviesQueryDto } from './dtos/search-movies-query.dto';
 import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
 import { FilterMoviesQueryDto } from './dtos/filter-movies-query.dto';
+import { CacheInterceptor } from '../../common/interceptors/cache.interceptor';
 
 @ApiTags('Movies')
 @Controller('movies')
@@ -23,6 +24,7 @@ export class MoviesController {
     status: 200,
     description: 'List of movies with pagination metadata.',
   })
+  @UseInterceptors(CacheInterceptor)
   async findAll(@Query() query: ListMoviesQueryDto): Promise<MoviesList> {
     const { page = 1, limit = 10 } = query;
     return this.moviesService.findAll(page, limit);
@@ -33,6 +35,7 @@ export class MoviesController {
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Get a movie by ID' })
   @ApiResponse({ status: 200, description: 'The movie data.' })
+  @UseInterceptors(CacheInterceptor)
   async findOne(@Param('id') id: number): Promise<MovieDto> {
     const movie = await this.moviesService.findOne(id);
     return new MovieView(movie).renderOne();
@@ -61,6 +64,7 @@ export class MoviesController {
   })
   @ApiQuery({ name: 'adult', required: false, type: Boolean })
   @ApiQuery({ name: 'genre', required: false, type: String })
+  @UseInterceptors(CacheInterceptor)
   async filterMovies(@Query() query: FilterMoviesQueryDto): Promise<MoviesList> {
     return this.moviesService.filterMovies(query);
   }
@@ -74,6 +78,7 @@ export class MoviesController {
     description: 'Search results for movies.',
   })
   @ApiQuery({ name: 'query', required: true, type: String })
+  @UseInterceptors(CacheInterceptor)
   async searchMovies(@Query() query: SearchMoviesQueryDto): Promise<MoviesList> {
     return this.moviesService.searchMovies(query.query, query.page, query.limit);
   }
