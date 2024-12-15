@@ -4,9 +4,10 @@ import { MoviesController } from './movies.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Genre } from './entities/genre.entity';
 import { Movie } from './entities/movie.entity';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Movie, Genre])],
+  imports: [CacheModule.register(), TypeOrmModule.forFeature([Movie, Genre])],
   controllers: [MoviesController],
   providers: [MoviesService],
   exports: [MoviesService],

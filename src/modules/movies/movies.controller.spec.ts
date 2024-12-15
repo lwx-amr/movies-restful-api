@@ -7,6 +7,8 @@ import { SearchMoviesQueryDto } from './dtos/search-movies-query.dto';
 import { MoviesList } from './types/movies-list.type';
 import { RateMovieDto } from './dtos/rate-movie.dto';
 import { NotFoundException } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { ConfigModule } from '@nestjs/config';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -25,6 +27,7 @@ describe('MoviesController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register(), ConfigModule],
       controllers: [MoviesController],
       providers: [
         {
