@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
+import { FilterMoviesQueryDto } from './dtos/filter-movies-query.dto';
+import { SearchMoviesQueryDto } from './dtos/search-movies-query.dto';
 import { MoviesList } from './types/movies-list.type';
 import { RateMovieDto } from './dtos/rate-movie.dto';
 import { NotFoundException } from '@nestjs/common';
@@ -18,6 +20,8 @@ describe('MoviesController', () => {
       update: jest.fn(),
       remove: jest.fn(),
       rateMovie: jest.fn(),
+      filterMovies: jest.fn(),
+      searchMovies: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -74,16 +78,71 @@ describe('MoviesController', () => {
     });
   });
 
+  describe('filterMovies', () => {
+    it('should call filterMovies service method with filter criteria and return filtered movies', async () => {
+      const query: FilterMoviesQueryDto = { genre: 'Action' };
+      const filteredMovies: MoviesList = {
+        movies: [{ id: 1, title: 'Action Movie', overview: 'Great Action Movie' } as any],
+        totalPages: 1,
+        currentPage: 1,
+      };
+
+      moviesService.filterMovies.mockResolvedValue(filteredMovies);
+
+      const result = await controller.filterMovies(query);
+
+      expect(moviesService.filterMovies).toHaveBeenCalledWith(query);
+      expect(result).toEqual(filteredMovies);
+    });
+  });
+
+  describe('searchMovies', () => {
+    it('should call searchMovies service method with query and pagination parameters and return search results', async () => {
+      const query: SearchMoviesQueryDto = { query: 'Test', page: 1, limit: 10 };
+      const searchResults: MoviesList = {
+        movies: [{ id: 1, title: 'Test Movie', overview: 'Test Description' } as any],
+        totalPages: 1,
+        currentPage: 1,
+      };
+
+      moviesService.searchMovies.mockResolvedValue(searchResults);
+
+      const result = await controller.searchMovies(query);
+
+      expect(moviesService.searchMovies).toHaveBeenCalledWith(query.query, query.page, query.limit);
+      expect(result).toEqual(searchResults);
+    });
+
+    it('should call searchMovies with default pagination if none is provided', async () => {
+      const query: SearchMoviesQueryDto = { query: 'Test' };
+      const searchResults: MoviesList = {
+        movies: [{ id: 1, title: 'Test Movie', overview: 'Test Description' } as any],
+        totalPages: 1,
+        currentPage: 1,
+      };
+
+      moviesService.searchMovies.mockResolvedValue(searchResults);
+
+      const result = await controller.searchMovies(query);
+
+      expect(moviesService.searchMovies).toHaveBeenCalledWith(query.query, undefined, undefined);
+      expect(result).toEqual(searchResults);
+    });
+  });
+
   describe('findOne', () => {
     it('should call findOne service method and return a movie by ID', async () => {
-      const movie = { id: 1, title: 'Test Movie', overview: 'Test Description' } as any;
+      const movie = { id: 1, title: 'Test Movie', overview: 'Test Description', genres: [{ id: 1, name: 'Horror' }] } as any;
 
       moviesService.findOne.mockResolvedValue(movie);
 
       const result = await controller.findOne(1);
 
       expect(moviesService.findOne).toHaveBeenCalledWith(1);
-      expect(result).toEqual(movie);
+      expect(result).toEqual({
+        ...movie,
+        genres: ['Horror'],
+      });
     });
 
     it('should propagate errors from service', async () => {

@@ -1,7 +1,7 @@
-import { Movie } from './movie.type';
+import { MovieDto } from '../dtos/movie.dto';
 
 export type MoviesList = {
-  movies: Movie[];
+  movies: MovieDto[];
   currentPage: number;
   totalPages: number;
 };

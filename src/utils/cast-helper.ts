@@ -6,6 +6,12 @@ interface ToNumberOptions {
   max?: number;
 }
 
+export function toBoolean(value: string): boolean {
+  value = value.toLowerCase();
+
+  return value === 'true' || value === '1' ? true : false;
+}
+
 export function toNumber(value: string, opts: ToNumberOptions = {}): number {
   let newValue: number = Number.parseInt(value || String(opts.default), 10);
   if (Number.isNaN(newValue)) {
