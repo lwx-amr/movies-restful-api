@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Movie } from './entities/movie.entity';
 import { MoviesList } from './types/movies-list.type';
 import { RateMovieDto } from './dtos/rate-movie.dto';
+import { MovieView } from './views/movie.view';
+import { FilterMoviesQueryDto } from './dtos/filter-movies-query.dto';
 
 @Injectable()
 export class MoviesService {
@@ -27,10 +29,7 @@ export class MoviesService {
     });
 
     return {
-      movies: movies.map((movie) => ({
-        ...movie,
-        genres: movie.genres.map((genre) => genre.id),
-      })),
+      movies: new MovieView(movies).renderArray(),
       currentPage: page,
       totalPages,
     };
@@ -68,5 +67,55 @@ export class MoviesService {
       })
       .where('id = :id', { id })
       .execute();
+  }
+
+  async filterMovies(query: FilterMoviesQueryDto): Promise<MoviesList> {
+    const { adult, genre, limit = 10, page = 1 } = query;
+
+    const qb = this.movieRepository
+      .createQueryBuilder('movie')
+      .leftJoinAndSelect('movie.genres', 'genre')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (adult !== undefined) {
+      qb.andWhere('movie.adult = :adult', { adult });
+    }
+
+    if (genre) {
+      qb.andWhere('genre.name = :genre', { genre });
+    }
+
+    if (!adult && !genre) {
+      return this.findAll(page, limit);
+    }
+
+    const [movies, count] = await Promise.all([qb.getMany(), qb.getCount()]);
+    return {
+      movies: new MovieView(movies).renderArray(),
+      currentPage: page,
+      totalPages: Math.ceil(count / limit),
+    };
+  }
+
+  async searchMovies(query: string, page: number = 1, limit: number = 10): Promise<MoviesList> {
+    const qb = this.movieRepository
+      .createQueryBuilder('movie')
+      .leftJoinAndSelect('movie.genres', 'genre')
+      .where('movie.title ILIKE :query', { query: `%${query}%` })
+      .orWhere('movie.overview ILIKE :query', { query: `%${query}%` })
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [movies, totalCount] = await qb.getManyAndCount();
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const result = {
+      movies: new MovieView(movies).renderArray(),
+      currentPage: page,
+      totalPages,
+    };
+
+    return result;
   }
 }

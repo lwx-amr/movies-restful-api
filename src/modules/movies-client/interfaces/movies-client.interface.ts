@@ -1,7 +1,7 @@
 import { Genre } from '../types/genre.type';
-import { MoviesList } from '../../movies/types/movies-list.type';
+import { MoviesClientList } from '../types/movies-list.type';
 
 export interface MoviesClientInterface {
-  fetchMovies(page: number): Promise<MoviesList>;
+  fetchMovies(page: number): Promise<MoviesClientList>;
   fetchGenres(): Promise<Genre[]>;
 }

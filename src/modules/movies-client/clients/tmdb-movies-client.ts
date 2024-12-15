@@ -6,7 +6,7 @@ import { TmdbMovie } from '../types/tmdb-movie.type';
 import { Genre } from '../types/genre.type';
 import { Movie } from '../../movies/types/movie.type';
 import { TmdbMoviesResponse } from '../types/tmdb-movies-response.type';
-import { MoviesList } from '../../movies/types/movies-list.type';
+import { MoviesClientList } from '../types/movies-list.type';
 
 @Injectable()
 export class TMDBMoviesClient implements MoviesClientInterface {
@@ -21,7 +21,7 @@ export class TMDBMoviesClient implements MoviesClientInterface {
     this.baseUrl = this.configService.get<string>('tmdb.baseUrl');
   }
 
-  async fetchMovies(page: number = 1): Promise<MoviesList> {
+  async fetchMovies(page: number = 1): Promise<MoviesClientList> {
     const url = `${this.baseUrl}/movie/popular?api_key=${this.apiKey}&page=${page}`;
     const response = await this.httpClient.get<TmdbMoviesResponse>(url);
 

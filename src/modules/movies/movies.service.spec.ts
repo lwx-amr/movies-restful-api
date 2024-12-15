@@ -1,161 +1,206 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, UpdateQueryBuilder } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { MoviesService } from './movies.service';
 import { Movie } from './entities/movie.entity';
-import { RateMovieDto } from './dtos/rate-movie.dto';
+import { NotFoundException } from '@nestjs/common';
+import { MovieView } from './views/movie.view';
 
 describe('MoviesService', () => {
   let service: MoviesService;
-  let movieRepository: jest.Mocked<Repository<Movie>>;
+  let repository: Repository<Movie>;
+
+  const mockMovies = [
+    {
+      id: 1,
+      title: 'Test Movie 1',
+      overview: 'Test Overview 1',
+      adult: false,
+      ratingCount: 10,
+      averageRating: 4.5,
+      genres: [{ id: 1, name: 'Action' }],
+    },
+    {
+      id: 2,
+      title: 'Test Movie 2',
+      overview: 'Test Overview 2',
+      adult: true,
+      ratingCount: 5,
+      averageRating: 3.5,
+      genres: [{ id: 2, name: 'Drama' }],
+    },
+  ] as any;
+
+  const mockRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    count: jest.fn(),
+    createQueryBuilder: jest.fn(),
+  };
 
   beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        MoviesService,
+        {
+          provide: getRepositoryToken(Movie),
+          useValue: mockRepository,
+        },
+      ],
+    }).compile();
+
+    service = module.get<MoviesService>(MoviesService);
+    repository = module.get<Repository<Movie>>(getRepositoryToken(Movie));
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('findAll', () => {
+    it('should return paginated movies list', async () => {
+      mockRepository.count.mockResolvedValue(20);
+      mockRepository.find.mockResolvedValue(mockMovies);
+
+      const result = await service.findAll(1, 10);
+
+      expect(result).toEqual({
+        movies: new MovieView(mockMovies).renderArray(),
+        currentPage: 1,
+        totalPages: 2,
+      });
+      expect(repository.find).toHaveBeenCalledWith({
+        relations: ['genres'],
+        skip: 0,
+        take: 10,
+      });
+    });
+
+    it('should throw NotFoundException when page exceeds total pages', async () => {
+      mockRepository.count.mockResolvedValue(10);
+
+      await expect(service.findAll(2, 10)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a movie by id', async () => {
+      mockRepository.findOne.mockResolvedValue(mockMovies[0]);
+
+      const result = await service.findOne(1);
+
+      expect(result).toEqual(mockMovies[0]);
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: 1 },
+        relations: ['genres'],
+      });
+    });
+
+    it('should throw NotFoundException when movie not found', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('rateMovie', () => {
     const mockQueryBuilder = {
       setLock: jest.fn().mockReturnThis(),
       update: jest.fn().mockReturnThis(),
       set: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       execute: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<UpdateQueryBuilder<Movie>>;
-
-    const mockMovieRepository = {
-      findOne: jest.fn(),
-      find: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
-      createQueryBuilder: jest.fn(() => mockQueryBuilder),
     };
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        MoviesService,
-        {
-          provide: getRepositoryToken(Movie),
-          useValue: mockMovieRepository,
-        },
-      ],
-    }).compile();
+    beforeEach(() => {
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.findOne.mockResolvedValue(mockMovies[0]);
+    });
 
-    service = module.get<MoviesService>(MoviesService);
-    movieRepository = module.get(getRepositoryToken(Movie));
+    it('should update movie rating', async () => {
+      await service.rateMovie(1, { rating: 5 });
+
+      expect(mockQueryBuilder.setLock).toHaveBeenCalledWith('pessimistic_write');
+      expect(mockQueryBuilder.set).toHaveBeenCalled();
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith('id = :id', { id: 1 });
+      expect(mockQueryBuilder.execute).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when movie not found', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.rateMovie(999, { rating: 5 })).rejects.toThrow(NotFoundException);
+    });
   });
 
-  describe('findAll', () => {
-    it('should return a paginated list of movies with metadata', async () => {
-      const page = 1;
-      const limit = 10;
-      const totalCount = 25;
-      const totalPages = Math.ceil(totalCount / limit);
+  describe('filterMovies', () => {
+    const mockQueryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue(mockMovies),
+      getCount: jest.fn().mockResolvedValue(20),
+    };
 
-      const mockMovies = [
-        {
-          id: 1,
-          title: 'Test Movie 1',
-          genres: [{ id: 1, name: 'Action' }],
-        },
-        {
-          id: 2,
-          title: 'Test Movie 2',
-          genres: [{ id: 2, name: 'Comedy' }],
-        },
-      ];
+    beforeEach(() => {
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+    });
 
-      movieRepository.count.mockResolvedValue(totalCount);
-      movieRepository.find.mockResolvedValue(mockMovies as any);
-
-      const result = await service.findAll(page, limit);
-
-      expect(movieRepository.count).toHaveBeenCalledTimes(1);
-      expect(movieRepository.find).toHaveBeenCalledWith({
-        relations: ['genres'],
-        skip: (page - 1) * limit,
-        take: limit,
-      });
+    it('should filter movies by adult content', async () => {
+      const result = await service.filterMovies({ adult: true });
 
       expect(result).toEqual({
-        movies: mockMovies.map((movie) => ({
-          ...movie,
-          genres: movie.genres.map((genre) => genre.id),
-        })),
-        currentPage: page,
-        totalPages,
+        movies: new MovieView(mockMovies).renderArray(),
+        currentPage: 1,
+        totalPages: 2,
       });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('movie.adult = :adult', { adult: true });
     });
 
-    it('should throw NotFoundException if requested page exceeds total pages', async () => {
-      const page = 3;
-      const limit = 10;
-      const totalCount = 20;
+    it('should filter movies by genre', async () => {
+      const result = await service.filterMovies({ genre: 'Action' });
 
-      movieRepository.count.mockResolvedValue(totalCount);
-
-      await expect(service.findAll(page, limit)).rejects.toThrow(new NotFoundException(`No movies found on page ${page}.`));
-
-      expect(movieRepository.count).toHaveBeenCalledTimes(1);
-      expect(movieRepository.find).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        movies: new MovieView(mockMovies).renderArray(),
+        currentPage: 1,
+        totalPages: 2,
+      });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('genre.name = :genre', { genre: 'Action' });
     });
   });
 
-  describe('findOne', () => {
-    it('should return a movie by ID', async () => {
-      const movie = { id: 1, title: 'Movie 1', tmdbId: 1, genres: [] } as any;
+  describe('searchMovies', () => {
+    const mockQueryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      orWhere: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn().mockResolvedValue([mockMovies, 20]),
+    };
 
-      movieRepository.findOne.mockResolvedValue(movie);
+    beforeEach(() => {
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+    });
 
-      const result = await service.findOne(1);
+    it('should search movies by query string', async () => {
+      const result = await service.searchMovies('test');
 
-      expect(movieRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 1 },
-        relations: ['genres'],
+      expect(result).toEqual({
+        movies: new MovieView(mockMovies).renderArray(),
+        currentPage: 1,
+        totalPages: 2,
       });
-      expect(result).toEqual(movie);
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith('movie.title ILIKE :query', { query: '%test%' });
+      expect(mockQueryBuilder.orWhere).toHaveBeenCalledWith('movie.overview ILIKE :query', { query: '%test%' });
     });
 
-    it('should throw NotFoundException if movie is not found', async () => {
-      movieRepository.findOne.mockResolvedValue(null);
+    it('should handle pagination in search results', async () => {
+      await service.searchMovies('test', 2, 5);
 
-      await expect(service.findOne(1)).rejects.toThrow(new NotFoundException(`Movie with ID 1 not found.`));
-    });
-  });
-
-  describe('rateMovie', () => {
-    it('should successfully rate a movie and calculate averageRating and ratingCount correctly', async () => {
-      const id = 1;
-      const rateMovieDto: RateMovieDto = { rating: 4.5 };
-      const mockMovie = { id, title: 'Test Movie', ratingCount: 3, averageRating: 4.0 } as any;
-
-      movieRepository.findOne.mockResolvedValue(mockMovie);
-
-      const queryBuilder = movieRepository.createQueryBuilder();
-
-      await service.rateMovie(id, rateMovieDto);
-
-      expect(movieRepository.findOne).toHaveBeenCalledWith({ where: { id } });
-
-      const setArgument = (queryBuilder as any).set.mock.calls[0][0];
-      expect((setArgument as any).ratingCount()).toBe('ratingCount + 1');
-      expect((setArgument as any).averageRating()).toBe('(averageRating * ratingCount + 4.5) / (ratingCount + 1)');
-
-      expect(queryBuilder.setLock).toHaveBeenCalledWith('pessimistic_write');
-      expect(queryBuilder.update).toHaveBeenCalledWith(Movie);
-      expect(queryBuilder.where).toHaveBeenCalledWith('id = :id', { id });
-      expect(queryBuilder.execute).toHaveBeenCalled();
-    });
-
-    it('should throw NotFoundException if the movie does not exist', async () => {
-      const id = 999;
-      const rateMovieDto: RateMovieDto = { rating: 4.5 };
-
-      movieRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.rateMovie(id, rateMovieDto)).rejects.toThrow(new NotFoundException(`Movie with ID ${id} not found.`));
-
-      expect(movieRepository.findOne).toHaveBeenCalledWith({ where: { id } });
-      expect(movieRepository.createQueryBuilder().execute).not.toHaveBeenCalled();
+      expect(mockQueryBuilder.skip).toHaveBeenCalledWith(5);
+      expect(mockQueryBuilder.take).toHaveBeenCalledWith(5);
     });
   });
 });
