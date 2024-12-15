@@ -11,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseSyncModule } from './modules/database-sync/database-sync.module';
 import { MoviesModule } from './modules/movies/movies.module';
 import { UsersModule } from './modules/users/users.module';
+import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import AppDataSource from './config/typeorm.config';
 import jwtConfig from './config/jwt.config';
 
@@ -25,6 +26,7 @@ import jwtConfig from './config/jwt.config';
     DatabaseSyncModule,
     MoviesModule,
     UsersModule,
+    WatchlistModule,
   ],
   controllers: [AppController],
   providers: [AppService, HttpClientProvider],

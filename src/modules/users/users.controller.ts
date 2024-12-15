@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SinginDto } from './dto/sing-in.dto';
@@ -19,6 +20,7 @@ export class UsersController {
     return this.usersService.signIn(signInData);
   }
 
+  @ApiBearerAuth('Bearer')
   @UseGuards(RefreshTokenGuard)
   @Get('refresh')
   async refreshTokens(@Req() req) {
@@ -27,6 +29,7 @@ export class UsersController {
     return this.usersService.refreshTokens(userId, refreshToken);
   }
 
+  @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
   @Post('logout')
   async logout(@Req() req) {

@@ -1,8 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
-import { CreateMovieDto } from './dtos/create-movie.dto';
-import { UpdateMovieDto } from './dtos/update-movie.dto';
 import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
 import { MoviesList } from './types/movies-list.type';
 import { RateMovieDto } from './dtos/rate-movie.dto';
@@ -34,20 +32,6 @@ describe('MoviesController', () => {
 
     controller = module.get<MoviesController>(MoviesController);
     moviesService = module.get(MoviesService);
-  });
-
-  describe('create', () => {
-    it('should call create service method and return the created movie', async () => {
-      const createMovieDto = { title: 'Test Movie', overview: 'Test Description' } as CreateMovieDto;
-      const createdMovie = { id: 1, ...createMovieDto } as any;
-
-      moviesService.create.mockResolvedValue(createdMovie);
-
-      const result = await controller.create(createMovieDto);
-
-      expect(moviesService.create).toHaveBeenCalledWith(createMovieDto);
-      expect(result).toEqual(createdMovie);
-    });
   });
 
   describe('findAll', () => {
@@ -108,47 +92,6 @@ describe('MoviesController', () => {
       moviesService.findOne.mockRejectedValue(error);
 
       await expect(controller.findOne(1)).rejects.toThrow(error);
-    });
-  });
-
-  describe('update', () => {
-    it('should call update service method and return the updated movie', async () => {
-      const updateMovieDto: UpdateMovieDto = { title: 'Updated Title' };
-      const updatedMovie = { id: 1, title: 'Updated Title', overview: 'Test Description' } as any;
-
-      moviesService.update.mockResolvedValue(updatedMovie);
-
-      const result = await controller.update(1, updateMovieDto);
-
-      expect(moviesService.update).toHaveBeenCalledWith(1, updateMovieDto);
-      expect(result).toEqual(updatedMovie);
-    });
-
-    it('should propagate errors from service', async () => {
-      const error = new Error('Update failed');
-
-      moviesService.update.mockRejectedValue(error);
-
-      await expect(controller.update(1, { title: 'Updated Title' })).rejects.toThrow(error);
-    });
-  });
-
-  describe('remove', () => {
-    it('should call remove service method and return void', async () => {
-      moviesService.remove.mockResolvedValue(undefined);
-
-      const result = await controller.remove(1);
-
-      expect(moviesService.remove).toHaveBeenCalledWith(1);
-      expect(result).toBeUndefined();
-    });
-
-    it('should propagate errors from service', async () => {
-      const error = new Error('Delete failed');
-
-      moviesService.remove.mockRejectedValue(error);
-
-      await expect(controller.remove(1)).rejects.toThrow(error);
     });
   });
 

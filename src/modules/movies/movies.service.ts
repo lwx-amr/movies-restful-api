@@ -1,9 +1,7 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Movie } from './entities/movie.entity';
-import { CreateMovieDto } from './dtos/create-movie.dto';
-import { UpdateMovieDto } from './dtos/update-movie.dto';
 import { MoviesList } from './types/movies-list.type';
 import { RateMovieDto } from './dtos/rate-movie.dto';
 
@@ -13,23 +11,6 @@ export class MoviesService {
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
   ) {}
-
-  async create(createMovieDto: CreateMovieDto): Promise<Movie> {
-    const existingMovie = await this.movieRepository.findOne({
-      where: { tmdbId: createMovieDto.tmdbId },
-    });
-
-    if (existingMovie) {
-      throw new ConflictException(`Movie with TMDB ID ${createMovieDto.tmdbId} already exists.`);
-    }
-
-    const movie = this.movieRepository.create({
-      ...createMovieDto,
-      genres: createMovieDto.genres.map((genreId) => ({ id: genreId })),
-    });
-
-    return this.movieRepository.save(movie);
-  }
 
   async findAll(page: number = 1, limit: number = 10): Promise<MoviesList> {
     const totalCount = await this.movieRepository.count();
@@ -66,28 +47,6 @@ export class MoviesService {
     }
 
     return movie;
-  }
-
-  async update(id: number, updateMovieDto: UpdateMovieDto): Promise<Movie> {
-    const existingMovie = await this.movieRepository.findOne({ where: { id } });
-
-    if (!existingMovie) {
-      throw new NotFoundException(`Movie with ID ${id} not found.`);
-    }
-
-    await this.movieRepository.update(id, updateMovieDto);
-
-    return this.findOne(id);
-  }
-
-  async remove(id: number): Promise<void> {
-    const existingMovie = await this.movieRepository.findOne({ where: { id } });
-
-    if (!existingMovie) {
-      throw new NotFoundException(`Movie with ID ${id} not found.`);
-    }
-
-    await this.movieRepository.delete(id);
   }
 
   async rateMovie(id: number, rateMovieDto: RateMovieDto): Promise<void> {

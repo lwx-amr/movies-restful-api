@@ -1,9 +1,8 @@
 import { UserView } from './user.view';
-import { User } from '../entities/user.entity';
 import { User as UserType } from '../types/user.type';
 
 describe('UserView', () => {
-  const mockUser: User = {
+  const mockUser: any = {
     id: 1,
     username: 'testuser',
     fullName: 'Test User',
@@ -12,7 +11,7 @@ describe('UserView', () => {
     refreshToken: 'refreshToken',
   };
 
-  const mockUsers: User[] = [
+  const mockUsers: any[] = [
     {
       id: 1,
       username: 'testuser1',

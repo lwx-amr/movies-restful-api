@@ -29,5 +29,6 @@ module.exports = {
     '\\.module\\.ts$',
     '\\.config\\.ts$',
     '\\.dto\\.ts$',
+    '\\.entity\\.ts$',
   ],
 };
