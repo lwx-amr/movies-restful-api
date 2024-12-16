@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddFullTextSearchToMovies1671234567891 implements MigrationInterface {
+export class Migration1734485517480 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE movies ADD COLUMN tsv tsvector;

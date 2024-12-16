@@ -1,6 +1,7 @@
-import { Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { DatabaseSyncService } from './database-sync.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { AccessTokenGuard } from '../../common/guards/access-token.guard';
 
 @ApiTags('Sync')
 @Controller('sync')
@@ -8,6 +9,8 @@ export class DatabaseSyncController {
   constructor(private readonly databaseSyncService: DatabaseSyncService) {}
 
   @Post('genres')
+  @ApiBearerAuth('Bearer')
+  @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Sync Genres', description: 'Synchronizes genres with the database.' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Genres synced successfully.' })
@@ -17,6 +20,8 @@ export class DatabaseSyncController {
   }
 
   @Post('movies')
+  @ApiBearerAuth('Bearer')
+  @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Sync Movies', description: 'Synchronizes movies with the database.' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Movies synced successfully.' })
