@@ -1,150 +1,209 @@
 # Movies-Restful-API
 
+A RESTful API built using NestJS to interact with The Movie Database (TMDB) APIs. This application provides functionality for managing movies, including creating, updating, deleting, and rating movies. The database is synchronized with TMDB data, supporting pagination, filtering, and caching.
+
+## Features
+
+- Manage movies and genres.
+- Pagination: Retrieve movies with pagination.
+- Genre Filtering: Filter movies by genres.
+- Rating System: Rate movies and calculate their average ratings.
+- Wathlist: Add and remove movies from Watchlist.
+- Database Sync: Sync genres and movies with TMDB data.
+- Validation: Comprehensive input validation for all endpoints.
+- Caching: Optimized with Redis for frequently accessed data.
+- Docker Support: Easily run the application using Docker.
+- API Documentation: Swagger documentation included for all endpoints.
+- Unit Tests: Achieved 95%+ test coverage.
+
+## Prerequisites
+
+- Node.js (v21.0.0)
+- Docker
+- TMDB API Key
+- pnpm package manager
+
+## Technology Stack
+
+- NestJS
+- TypeORM
+- PostgreSQL
+- Redis (for caching)
+- Swagger (API documentation)
+- Jest (testing)
+- Passport.js (authentication)
+
+## Installation
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/movies-restful-api.git
+cd movies-restful-api
+```
+
+### 2. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Environment Configuration
+
+Create a `.env` file in the project root and make sure to include all of the ENVs from .env.example file
+
+## For Development
+
+### 1. Make sure to have 2 running instance of redis and postgres
+
+```bash
+# To use docker
+# Postgres
+docker run --name postgres_container   -e POSTGRES_USER={youruser}   -e POSTGRES_PASSWORD=[yourpassword]   -e POSTGRES_DB=movies-restful-api   -p 5432:5432   -v postgres_data:/var/lib/postgresql/data   -d postgres:latest
+
+# Redis
+docker run -d --name redis-container -p 6379:6379 redis:latest --requirepass {yourpassword}
+```
+
+### 2. Database Migrations
+
+```bash
+# Run migrations
+pnpm run migration:run
+```
+
+## Running the Application
+
+### Development Mode
+
+```bash
+pnpm run start:dev
+```
+
+### Production Mode
+
+```bash
+pnpm run build
+pnpm run start:prod
+```
+
+## To run using docker compose
+
+### Docker Deployment
+
+```bash
+docker-compose up --build
+```
+
+### Sync the genres and then the movies
+
+```bash
+# Hit this endpoint to sync genres
+POST /sync/genres
+
+# Hit this endpoint to sync movies
+POST /sync/movies
+```
+
+The application will be accessible at `http://localhost:8080`
+
+## API Documentation
+
+Swagger UI documentation is available at `/api-docs` endpoint when the application is running.
+
+## Testing
+
+### Run Unit Tests
+
+```bash
+pnpm run test
+```
+
+### Test Coverage
+
+```bash
+pnpm run test:cov
+```
+
 ## Project Structure
 
+```bash
 src/
 ├── app.module.ts               # Root application module
 ├── main.ts                     # Entry point of the application
 ├── common/                     # Shared resources, utilities, and guards
-│   ├── decorators/             # Custom decorators
-│   ├── dtos/                   # Data Transfer Objects (shared DTOs)
+│   ├── types/                  # Data Transfer Objects (shared DTOs)
 │   ├── exceptions/             # Custom exceptions
-│   ├── filters/                # Exception filters
 │   ├── guards/                 # Authorization guards
 │   ├── interceptors/           # Request/Response interceptors
 │   └── pipes/                  # Validation pipes
 ├── config/                     # Configuration files
 │   ├── app.config.ts           # Application-specific configuration
 │   ├── database.config.ts      # Database-specific configuration
-│   └── cache.config.ts         # Cache-specific configuration
+│   ├── jwt.config.ts           # jwt-specific configuration
+│   ├── redis.config.ts         # redis-specific configuration
+│   ├── tmdb.config.ts          # tmdb-specific configuration
+│   └── typeorm.config.ts       # typeorm-specific configuration
 ├── modules/                    # Feature modules
 │   ├── movies/                 # Movies feature module
 │   │   ├── movies.controller.ts  # Controller for movie-related routes
 │   │   ├── movies.module.ts      # Feature module definition
 │   │   ├── movies.service.ts     # Business logic for movies
-│   │   ├── dtos/                 # DTOs specific to movies
-│   │   └── entities/             # Database entities for movies
+│   │   └──  dtos/                # DTOs specific to movies
+│   ├── movies-client/            # Movies feature module
+│   │   ├── movies.controller.ts  # Controller for movie-related routes
+│   │   ├── movies.module.ts      # Feature module definition
+│   │   ├── movies.service.ts     # Business logic for movies
+│   │   ├── clients/              # contains all the clients we will have to consume movies APIs
+│   │   ├── interfaces/           # interface for all the clients we will have to consume movies APIs
+│   │   └── types/                # Data Transfer Objects (shared DTOs)
 │   ├── users/                  # Users feature module
 │   │   ├── users.controller.ts   # Controller for user-related routes
 │   │   ├── users.module.ts       # Feature module definition
 │   │   ├── users.service.ts      # Business logic for users
 │   │   ├── dtos/                 # DTOs specific to users
 │   │   └── entities/             # Database entities for users
-│   └── auth/                   # Authentication module
-│       ├── auth.controller.ts    # Controller for authentication routes
-│       ├── auth.module.ts        # Feature module definition
-│       ├── auth.service.ts       # Business logic for authentication
-│       └── strategies/           # Authentication strategies (e.g., JWT, OAuth)
+│   └── movies-sync/                   # Authentication module
+│       ├── movies-sync.controller.ts    # Controller for movies-sync routes
+│       ├── movies-sync.module.ts        # Feature module definition
+│       └── movies-sync.service.ts       # Business logic for movies-syncentication
 ├── database/                   # Database-related configuration and scripts
-│   ├── entities/               # Global database entities
 │   └── migrations/             # Database migration scripts
 ├── shared/                     # Shared utilities and services
-│   ├── logger/                 # Custom logger service
-│   ├── mailer/                 # Email service
-│   └── redis/                  # Redis service for caching
+│   └──  https-client/          # HTTP client to perform HTTP calls
 ├── tests/                      # Test-related files
 │   ├── e2e/                    # End-to-end tests
 │   └── unit/                   # Unit tests
 └── utils/                      # General-purpose utilities
     ├── constants.ts            # Application-wide constants
-    ├── helpers.ts              # Helper functions
-    └── types.ts                # Shared types and interfaces
-
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-<p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p><p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
+    └── cast-helpers.ts         # Helper functions for casting
 ```
 
-## Compile and run the project
+## Authentication
 
-```bash
-# development
-$ pnpm run start
+The API uses JWT (JSON Web Token) for authentication. Register and login endpoints are provided to obtain access tokens.
 
-# watch mode
-$ pnpm run start:dev
+## Key Highlights
 
-# production mode
-$ pnpm run start:prod
-```
+- Database: PostgreSQL is used for relational data storage.
+- Caching: Redis improves performance for repeated queries.
+- Validation: DTOs with class-validator ensure clean, reliable input handling.
+- Swagger: Provides interactive API documentation.
 
-## Run tests
+## Future Enhancements
 
-```bash
-# unit tests
-$ pnpm run test
+- Split Auth in a seperate module
+- Setup periodic jobs to hit the sync endpoints frequently to stay up to date
+- Logs to be sent to a 3rd party to allow querying
+- Setup any monitoring agent like Sentry
 
-# e2e tests
-$ pnpm run test:e2e
+## Deployment Considerations
 
-# test coverage
-$ pnpm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Ensure all environment variables are properly configured
+- Use strong, unique passwords and secrets
+- Consider using a production-ready PostgreSQL and Redis setup
+- Implement additional security measures as needed
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Distributed under the UNLICENSED License.
