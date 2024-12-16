@@ -8,7 +8,7 @@ A RESTful API built using NestJS to interact with The Movie Database (TMDB) APIs
 - Pagination: Retrieve movies with pagination.
 - Genre Filtering: Filter movies by genres.
 - Rating System: Rate movies and calculate their average ratings.
-- Wathlist: Add and remove movies from Watchlist.
+- Watchlist: Add and remove movies from Watchlist.
 - Database Sync: Sync genres and movies with TMDB data.
 - Validation: Comprehensive input validation for all endpoints.
 - Caching: Optimized with Redis for frequently accessed data.
@@ -166,7 +166,7 @@ src/
 │   └── movies-sync/                   # Authentication module
 │       ├── movies-sync.controller.ts    # Controller for movies-sync routes
 │       ├── movies-sync.module.ts        # Feature module definition
-│       └── movies-sync.service.ts       # Business logic for movies-syncentication
+│       └── movies-sync.service.ts       # Business logic for movies-sync
 ├── database/                   # Database-related configuration and scripts
 │   └── migrations/             # Database migration scripts
 ├── shared/                     # Shared utilities and services
@@ -192,10 +192,11 @@ The API uses JWT (JSON Web Token) for authentication. Register and login endpoin
 
 ## Future Enhancements
 
-- Split Auth in a seperate module
+- Split Auth in a separate module
 - Setup periodic jobs to hit the sync endpoints frequently to stay up to date
 - Logs to be sent to a 3rd party to allow querying
 - Setup any monitoring agent like Sentry
+- Setup CI/CD and Github pipeline to automated covered check and deployment
 
 ## Deployment Considerations
 
