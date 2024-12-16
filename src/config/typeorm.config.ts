@@ -13,12 +13,14 @@ const AppDataSource = new DataSource({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10),
   username: process.env.DB_USER,
-  password: process.env.DB_PASS,
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   synchronize: false,
   entities: [Movie, Genre, User, Watchlist],
-  migrations: [join(__dirname, '..', 'database', 'migrations', '*.ts')],
-  migrationsRun: false,
+  migrations: [join(__dirname, '..', 'database', 'migrations', '*.js')],
+  migrationsRun: true,
+  migrationsTransactionMode: 'each',
+  migrationsTableName: 'migrations',
 });
 
 export default AppDataSource;
