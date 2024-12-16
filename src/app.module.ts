@@ -17,11 +17,13 @@ import jwtConfig from './config/jwt.config';
 import redisConfig from './config/redis.config';
 import { CacheModule, CacheStore } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { ThrottlerModule } from '@nestjs/throttler';
+import throttlingConfig from './config/throttling.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [appConfig, databaseConfig, tmdbConfig, jwtConfig, redisConfig],
+      load: [appConfig, databaseConfig, tmdbConfig, jwtConfig, redisConfig, throttlingConfig],
       isGlobal: true,
     }),
     CacheModule.registerAsync({
@@ -40,6 +42,18 @@ import { redisStore } from 'cache-manager-redis-yet';
       },
       inject: [ConfigService],
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return [
+          {
+            ttl: configService.get<number>('throttling.ttl') * 60000,
+            limit: configService.get<number>('throttling.limit'),
+          },
+        ];
+      },
+    }),
     TypeOrmModule.forRoot(AppDataSource.options),
     MoviesClientModule,
     DatabaseSyncModule,
@@ -49,6 +63,6 @@ import { redisStore } from 'cache-manager-redis-yet';
   ],
   controllers: [AppController],
   providers: [AppService, HttpClientProvider],
-  exports: [HttpClientProvider],
+  exports: [HttpClientProvider, ThrottlerModule],
 })
 export class AppModule {}

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DatabaseSyncController } from './database-sync.controller';
 import { DatabaseSyncService } from './database-sync.service';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 describe('DatabaseSyncController', () => {
   let controller: DatabaseSyncController;
@@ -13,6 +14,14 @@ describe('DatabaseSyncController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ThrottlerModule.forRoot([
+          {
+            ttl: 60,
+            limit: 10,
+          },
+        ]),
+      ],
       controllers: [DatabaseSyncController],
       providers: [
         {

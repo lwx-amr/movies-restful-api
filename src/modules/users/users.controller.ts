@@ -5,24 +5,28 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { SinginDto } from './dto/sing-in.dto';
 import { RefreshTokenGuard } from '../../common/guards/refresh-token.guard';
 import { AccessTokenGuard } from '../../common/guards/access-token.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('signup')
+  @UseGuards(ThrottlerGuard)
   async signup(@Body() createUserData: CreateUserDto) {
     return this.usersService.signUp(createUserData);
   }
 
   @Post('signin')
+  @UseGuards(ThrottlerGuard)
   async login(@Body() signInData: SinginDto) {
     return this.usersService.signIn(signInData);
   }
 
-  @ApiBearerAuth('Bearer')
-  @UseGuards(RefreshTokenGuard)
   @Get('refresh')
+  @UseGuards(RefreshTokenGuard)
+  @UseGuards(ThrottlerGuard)
+  @ApiBearerAuth('Bearer')
   async refreshTokens(@Req() req) {
     const userId = req.user['sub'];
     const refreshToken = req.user['refreshToken'];
@@ -31,6 +35,7 @@ export class UsersController {
 
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @Post('logout')
   async logout(@Req() req) {
     const userId = req.user['sub'];

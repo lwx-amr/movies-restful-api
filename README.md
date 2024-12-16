@@ -12,6 +12,8 @@ A RESTful API built using NestJS to interact with The Movie Database (TMDB) APIs
 - Database Sync: Sync genres and movies with TMDB data.
 - Validation: Comprehensive input validation for all endpoints.
 - Caching: Optimized with Redis for frequently accessed data.
+- Rate Limiting: The ability to rate limit user's requests if he hit a certain threshold
+- Custom Logging: Added file logging with a 5 files retain policy
 - Docker Support: Easily run the application using Docker.
 - API Documentation: Swagger documentation included for all endpoints.
 - Unit Tests: Achieved 95%+ test coverage.
@@ -32,6 +34,7 @@ A RESTful API built using NestJS to interact with The Movie Database (TMDB) APIs
 - Swagger (API documentation)
 - Jest (testing)
 - Passport.js (authentication)
+- Helmet (Security)
 
 ## Installation
 
@@ -133,7 +136,7 @@ src/
 ├── main.ts                     # Entry point of the application
 ├── common/                     # Shared resources, utilities, and guards
 │   ├── types/                  # Data Transfer Objects (shared DTOs)
-│   ├── exceptions/             # Custom exceptions
+│   ├── filters/                # Custom filters
 │   ├── guards/                 # Authorization guards
 │   ├── interceptors/           # Request/Response interceptors
 │   └── pipes/                  # Validation pipes
@@ -170,7 +173,8 @@ src/
 ├── database/                   # Database-related configuration and scripts
 │   └── migrations/             # Database migration scripts
 ├── shared/                     # Shared utilities and services
-│   └──  https-client/          # HTTP client to perform HTTP calls
+│   ├── logger/                 # Custom logger config
+│   └── https-client/           # HTTP client to perform HTTP calls
 ├── tests/                      # Test-related files
 │   ├── e2e/                    # End-to-end tests
 │   └── unit/                   # Unit tests
@@ -188,6 +192,8 @@ The API uses JWT (JSON Web Token) for authentication. Register and login endpoin
 - Database: PostgreSQL is used for relational data storage.
 - Caching: Redis improves performance for repeated queries.
 - Validation: DTOs with class-validator ensure clean, reliable input handling.
+- Helmet: For better security
+- Logging: Using winston for file logging
 - Swagger: Provides interactive API documentation.
 
 ## Future Enhancements

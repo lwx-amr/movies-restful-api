@@ -3,6 +3,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SinginDto } from './dto/sing-in.dto';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -17,6 +18,14 @@ describe('UsersController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ThrottlerModule.forRoot([
+          {
+            ttl: 60,
+            limit: 10,
+          },
+        ]),
+      ],
       controllers: [UsersController],
       providers: [
         {
