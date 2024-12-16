@@ -3,16 +3,18 @@ import { ApiTags, ApiResponse, ApiOperation, ApiBearerAuth } from '@nestjs/swagg
 import { WatchlistService } from './watchlist.service';
 import { AddToWatchlistDto } from './dto/add-to-watchlist.dto';
 import { AccessTokenGuard } from '../../common/guards/access-token.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @ApiTags('Watchlist')
 @Controller('watchlist')
 export class WatchlistController {
   constructor(private readonly watchlistService: WatchlistService) {}
 
+  @Post('add')
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiBearerAuth('Bearer')
-  @Post('add')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Add a movie to the watchlist' })
   @ApiResponse({ status: 200, description: 'Movie added to the watchlist successfully.' })
@@ -22,10 +24,11 @@ export class WatchlistController {
     return this.watchlistService.addToList(userId, addToWatchlistDto.movieId);
   }
 
+  @Delete('remove/:movieId')
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiBearerAuth('Bearer')
-  @Delete('remove/:movieId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Remove a movie from the watchlist' })
   @ApiResponse({ status: 200, description: 'Movie removed from the watchlist successfully.' })
@@ -35,10 +38,11 @@ export class WatchlistController {
     return this.watchlistService.removeFromList(userId, movieId);
   }
 
+  @Get()
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiBearerAuth('Bearer')
-  @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get the user's watchlist" })
   @ApiResponse({ status: 200, description: "User's watchlist retrieved successfully." })

@@ -9,6 +9,7 @@ import { RateMovieDto } from './dtos/rate-movie.dto';
 import { NotFoundException } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -27,7 +28,16 @@ describe('MoviesController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      imports: [CacheModule.register(), ConfigModule],
+      imports: [
+        CacheModule.register(),
+        ConfigModule,
+        ThrottlerModule.forRoot([
+          {
+            ttl: 60,
+            limit: 10,
+          },
+        ]),
+      ],
       controllers: [MoviesController],
       providers: [
         {

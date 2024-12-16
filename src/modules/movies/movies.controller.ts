@@ -10,6 +10,7 @@ import { SearchMoviesQueryDto } from './dtos/search-movies-query.dto';
 import { ListMoviesQueryDto } from './dtos/list-movies-query.dto';
 import { FilterMoviesQueryDto } from './dtos/filter-movies-query.dto';
 import { CacheInterceptor } from '../../common/interceptors/cache.interceptor';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @ApiTags('Movies')
 @Controller('movies')
@@ -19,6 +20,7 @@ export class MoviesController {
   @Get()
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiOperation({ summary: 'Get all movies with pagination' })
   @ApiResponse({
     status: 200,
@@ -33,6 +35,7 @@ export class MoviesController {
   @Get(':id')
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiOperation({ summary: 'Get a movie by ID' })
   @ApiResponse({ status: 200, description: 'The movie data.' })
   @UseInterceptors(CacheInterceptor)
@@ -44,6 +47,7 @@ export class MoviesController {
   @Patch(':id/rate')
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiOperation({ summary: 'Rate a movie' })
   @ApiResponse({
     status: 200,
@@ -57,6 +61,7 @@ export class MoviesController {
   @Get('list/filter')
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiOperation({ summary: 'Filter movies based on criteria' })
   @ApiResponse({
     status: 200,
@@ -72,6 +77,7 @@ export class MoviesController {
   @Get('list/search')
   @ApiBearerAuth('Bearer')
   @UseGuards(AccessTokenGuard)
+  @UseGuards(ThrottlerGuard)
   @ApiOperation({ summary: 'Search movies by title or overview' })
   @ApiResponse({
     status: 200,

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WatchlistController } from './watchlist.controller';
 import { WatchlistService } from './watchlist.service';
 import { AddToWatchlistDto } from './dto/add-to-watchlist.dto';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 describe('WatchlistController', () => {
   let controller: WatchlistController;
@@ -15,6 +16,14 @@ describe('WatchlistController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ThrottlerModule.forRoot([
+          {
+            ttl: 60,
+            limit: 10,
+          },
+        ]),
+      ],
       controllers: [WatchlistController],
       providers: [
         {
